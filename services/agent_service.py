@@ -1,11 +1,6 @@
 from sqlalchemy.orm import Session
 from models.agent_model import Agent
-from ai.agent.react_agent import ReactAgent
 from fastapi import HTTPException
-import json
-from services.chat_history_service import ChatHistoryService
-from utils.mask import mask_api_key
-
 
 class AgentService:
 
@@ -59,11 +54,9 @@ class AgentService:
             Agent.id == agent_id,
             Agent.user_id == user_id
         ).first()
-        # api_key 脱敏
-        agent.api_key = mask_api_key(agent.api_key)
-
         if not agent:
             raise HTTPException(status_code=404, detail="智能体不存在")
+
         return agent
 
     # ======================
@@ -74,13 +67,7 @@ class AgentService:
             db: Session,
             user_id: int
     ):
-        agents = db.query(Agent).filter(Agent.user_id == user_id).all()
-
-        # api_key 脱敏（循环处理）
-        for agent in agents:
-            agent.api_key = mask_api_key(agent.api_key)
-
-        return agents
+        return db.query(Agent).filter(Agent.user_id == user_id).all()
 
     # ======================
     # 更新智能体
@@ -129,55 +116,3 @@ class AgentService:
         db.delete(agent)
         db.commit()
         return {"detail": "删除成功"}
-
-    # ======================
-    # 流式对话
-    # ======================
-    @staticmethod
-    def chat_stream_agent(db: Session, agent_id: int, user_id: int, session_id: int, query: str):
-        # 查询Agent
-        agent = db.query(Agent).filter(
-            Agent.id == agent_id,
-            Agent.user_id == user_id
-        ).first()
-
-        if not agent:
-            yield json.dumps({"error": "智能体不存在"}, ensure_ascii=False)
-            return
-
-        try:
-            # 实例化 ReactAgent
-            react_agent = ReactAgent(
-                model_name=agent.model_name,
-                tools=agent.tools or [],
-                kb_id=agent.kb_id,
-                system_prompt=agent.system_prompt,
-                api_key = agent.api_key,
-                base_url = agent.base_url
-            )
-
-            # 获取历史记录
-            chat_history = ChatHistoryService.get_history(
-                db = db,
-                agent_id = agent_id,
-                session_id = session_id
-            )
-
-            # 流式返回
-            full_answer = ""
-            for chunk in react_agent.execute_stream(query, chat_history):
-                full_answer += chunk
-                yield chunk
-
-            # 保存历史记录
-            ChatHistoryService.add_chat(
-                db=db,
-                user_id=user_id,
-                agent_id=agent_id,
-                session_id=session_id,
-                user_msg=query,
-                ai_msg=full_answer.strip()
-            )
-
-        except Exception as e:
-            yield json.dumps({"error": f"Agent执行异常：{str(e)}"}, ensure_ascii=False)

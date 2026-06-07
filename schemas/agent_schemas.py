@@ -1,4 +1,3 @@
-# schemas/agent_schemas.py
 from pydantic import BaseModel
 from datetime import datetime
 from typing import Optional, List
@@ -18,16 +17,7 @@ class AgentCreate(BaseModel):
     tools: Optional[List[str]] = None
 
 # ----------------------
-# 2. 对话请求（前端 → 后端）
-# ----------------------
-class ChatRequest(BaseModel):
-    user_id: int
-    session_id: int
-    agent_id: int
-    query: str
-
-# ----------------------
-# 3. 返回智能体信息（后端 → 前端）
+# 2. 返回智能体信息（后端 → 前端）
 # ----------------------
 class AgentResp(BaseModel):
     id: int

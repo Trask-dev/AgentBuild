@@ -10,7 +10,7 @@ router = APIRouter(prefix="/rag", tags=["RAG知识库接口"])
 # ======================
 # 1. 创建RAG知识库
 # ======================
-@router.post("/create", response_model=RAGResp)
+@router.post("", response_model=RAGResp)
 def create_rag(
     req: RAGCreate,
     db: Session = Depends(get_db)

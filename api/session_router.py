@@ -8,7 +8,7 @@ from typing import List
 router = APIRouter(prefix="/session", tags=["会话管理"])
 
 # 1. 创建会话
-@router.post("/create", response_model=SessionResp)
+@router.post("", response_model=SessionResp)
 def create_session(
     req: SessionCreate,
     db: Session = Depends(get_db)
@@ -36,14 +36,12 @@ def get_user_sessions(
 @router.get("/{session_id}", response_model=SessionResp)
 def get_session(
     session_id: int,
-    agent_id: int = None,
     db: Session = Depends(get_db)
 ):
     return SessionService.get_session(
         db=db,
         session_id=session_id,
-        user_id=1,
-        agent_id=agent_id
+        user_id=1
     )
 
 # 4. 修改会话标题
@@ -51,14 +49,12 @@ def get_session(
 def update_session(
     session_id: int,
     req: SessionUpdate,
-    agent_id: int = None,
     db: Session = Depends(get_db)
 ):
     return SessionService.update_session_title(
         db=db,
         session_id=session_id,
         user_id=1,
-        agent_id=agent_id,
         title=req.title
     )
 
@@ -66,12 +62,10 @@ def update_session(
 @router.delete("/{session_id}")
 def delete_session(
     session_id: int,
-    agent_id: int = None,
     db: Session = Depends(get_db)
 ):
     return SessionService.delete_session(
         db=db,
         session_id=session_id,
         user_id=1,
-        agent_id=agent_id
     )

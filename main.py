@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from api.chat_router import router as chat_router
 from api.session_router import router as session_router
 from api.agent_router import router as agent_router
 from api.rag_router import router as rag_router
@@ -13,6 +14,7 @@ app = FastAPI(title="Agent智能体搭建平台")
 app.include_router(agent_router)
 app.include_router(rag_router)
 app.include_router(session_router)
+app.include_router(chat_router)
 
 if __name__ == "__main__":
     import uvicorn
