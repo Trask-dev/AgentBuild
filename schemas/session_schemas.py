@@ -25,7 +25,6 @@ class SessionResp(BaseModel):
     id: int
     user_id: int
     agent_id: int
-    session_id: int
     title: Optional[str] = None
     created_time: datetime
     updated_time: datetime

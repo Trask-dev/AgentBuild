@@ -11,10 +11,10 @@ Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="Agent智能体搭建平台")
 # 注册路由
+app.include_router(chat_router)
+app.include_router(session_router)
 app.include_router(agent_router)
 app.include_router(rag_router)
-app.include_router(session_router)
-app.include_router(chat_router)
 
 if __name__ == "__main__":
     import uvicorn
