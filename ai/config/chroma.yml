@@ -1,0 +1,9 @@
+collection_name: rag_knowledge
+persist_directory: ai/rag/data/chroma_db
+data_path: ai/rag/data/files
+md5_hex_store: ai/rag/data/md5_hex_store
+allow_knowledge_file_type: ["txt", "pdf"]
+k: 3
+chunk_size: 200
+chunk_overlap: 20
+separators: ["\n\n", "\n", ".", "!", "?", "。", "！", "？", " ", ""]
