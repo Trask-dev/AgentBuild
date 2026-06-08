@@ -34,7 +34,7 @@ ENV/
 *~
 
 # Logs
-ai/logs/
+backend/ai/logs/
 *.log
 
 # Environment variables
@@ -49,4 +49,7 @@ ai/logs/
 Thumbs.db
 
 # AI/RAG data
-ai/rag/data/
+backend/ai/rag/data/
+backend/ai/rag/files/
+backend/ai/rag/md5_hex_store/
+backend/ai/rag/chroma_db/
