@@ -1,1 +1,1 @@
-rag_summarize_prompt_path: ai/prompts/rag_summarize_prompt.txt
+rag_prompt_path: ai/prompts/rag_prompt.txt

@@ -5,7 +5,6 @@ from fastapi import APIRouter, Depends
 from schemas.agent_schemas import AgentCreate, AgentResp
 from services.agent_service import AgentService
 from sqlalchemy.orm import Session
-from utils.mask import mask_api_key
 
 router = APIRouter(prefix="/agent", tags=["智能体接口"])
 
@@ -18,7 +17,7 @@ def create_agent(
         req: AgentCreate,
         db: Session = Depends(get_db)
 ):
-    agent = AgentService.create_agent(
+    return AgentService.create_agent(
         db=db,
         user_id=1,
         name=req.name,
@@ -31,9 +30,6 @@ def create_agent(
         kb_id=req.kb_id,
         tools=req.tools
     )
-    # api_key 脱敏
-    agent.api_key = mask_api_key(agent.api_key)
-    return agent
 
 
 # ======================
@@ -43,14 +39,10 @@ def create_agent(
 def get_user_agents(
         db: Session = Depends(get_db)
 ):
-    agents = AgentService.get_user_agents(
+    return AgentService.get_user_agents(
         db=db,
         user_id=1
     )
-    for agent in agents:
-        agent.api_key = mask_api_key(agent.api_key)
-
-    return agents
 
 
 # ======================
@@ -61,14 +53,11 @@ def get_agent(
         agent_id: int,
         db: Session = Depends(get_db)
 ):
-    agent = AgentService.get_agent(
+    return AgentService.get_agent(
         db=db,
         user_id=1,
         agent_id=agent_id
     )
-    # api_key 脱敏
-    agent.api_key = mask_api_key(agent.api_key)
-    return agent
 
 
 # ======================
@@ -80,7 +69,7 @@ def update_agent(
         req: AgentCreate,
         db: Session = Depends(get_db)
 ):
-    agent = AgentService.update_agent(
+    return AgentService.update_agent(
         db=db,
         user_id=1,
         agent_id=agent_id,
@@ -94,9 +83,6 @@ def update_agent(
         kb_id=req.kb_id,
         tools=req.tools
     )
-    # api_key 脱敏
-    agent.api_key = mask_api_key(agent.api_key)
-    return agent
 
 
 # ======================

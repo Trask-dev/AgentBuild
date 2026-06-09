@@ -8,6 +8,7 @@ from api.chat_router import router as chat_router
 from api.session_router import router as session_router
 from api.agent_router import router as agent_router
 from api.rag_router import router as rag_router
+from api.tool_router import router as tool_router
 from core.db import engine, Base
 from core.config import settings
 
@@ -20,6 +21,7 @@ app.include_router(chat_router)
 app.include_router(session_router)
 app.include_router(agent_router)
 app.include_router(rag_router)
+app.include_router(tool_router)
 
 if __name__ == "__main__":
     import uvicorn

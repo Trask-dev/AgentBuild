@@ -5,7 +5,7 @@ from sqlalchemy import Column, Integer, Text, TIMESTAMP, text
 class ChatHistory(Base):
     __tablename__ = "chat_history"
 
-    id = Column(Integer, primary_key=True, autoincrement=True)
+    id = Column(Integer, primary_key=True, autoincrement=True, comment="主键ID，自增")
     user_id = Column(Integer, nullable=False, comment="用户ID")
     agent_id = Column(Integer, nullable=False, comment="智能体ID")
     session_id = Column(Integer, nullable=False, comment="会话ID")

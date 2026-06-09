@@ -10,7 +10,8 @@ class ChatModelFactory():
         return ChatOpenAI(
             model=model_name,
             api_key=api_key,
-            base_url=base_url
+            base_url=base_url,
+            streaming=True
         )
 
 class EmbeddingFactory():

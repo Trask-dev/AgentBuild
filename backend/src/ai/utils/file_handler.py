@@ -1,8 +1,7 @@
 import hashlib
 import os
-
 from ai.utils.logger_handler import logger
-from langchain_community.document_loaders import PyPDFLoader, TextLoader
+from langchain_community.document_loaders import PyPDFLoader, TextLoader, Docx2txtLoader, UnstructuredMarkdownLoader
 from langchain_core.documents import Document
 
 
@@ -45,3 +44,21 @@ def pdf_loader(filepath: str, password: str = None) -> list[Document]:
 
 def txt_loader(filepath: str) -> list[Document]:
     return TextLoader(filepath, encoding="utf-8").load()
+
+def docx_loader(filepath: str) -> list[Document]:
+    """加载 Word 文档"""
+    try:
+        loader = Docx2txtLoader(filepath)
+        return loader.load()
+    except Exception as e:
+        logger.error(f"Agent:[加载Word]{filepath}失败: {str(e)}")
+        return []
+
+def md_loader(filepath: str) -> list[Document]:
+    """加载 Markdown 文档"""
+    try:
+        loader = UnstructuredMarkdownLoader(filepath)
+        return loader.load()
+    except Exception as e:
+        logger.error(f"Agent:[加载Markdown]{filepath}失败: {str(e)}")
+        return []

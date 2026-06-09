@@ -93,8 +93,7 @@ class AgentService:
         agent.name = name
         agent.system_prompt = system_prompt
         agent.model_name = model_name
-        # 若 api_key 含 **** 说明前端发来的是脱敏值，保留数据库原值
-        if api_key and '****' not in api_key:
+        if api_key:
             agent.api_key = api_key
         agent.base_url = base_url
         agent.description = description

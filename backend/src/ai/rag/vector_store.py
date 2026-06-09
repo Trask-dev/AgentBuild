@@ -1,8 +1,7 @@
 import os
-
 from ai.model.factory import embed_model
 from ai.utils.config_handler import chroma_conf
-from ai.utils.file_handler import txt_loader, pdf_loader, listdir_with_allowed_type, get_file_md5_hex
+from ai.utils.file_handler import txt_loader, pdf_loader, docx_loader, md_loader, listdir_with_allowed_type, get_file_md5_hex
 from ai.utils.logger_handler import logger
 from ai.utils.path_tool import get_abs_path
 from langchain_chroma import Chroma
@@ -16,7 +15,7 @@ class VectorStoreService:
         self.vector_store = Chroma(
             collection_name=chroma_conf["collection_name"],
             embedding_function=embed_model,
-            persist_directory=get_abs_path(f"{chroma_conf['persist_directory']}/kb_{self.kb_id}"),
+            persist_directory=get_abs_path(os.path.join(chroma_conf['persist_directory'], f"kb_{self.kb_id}")),
         )
         self.spliter = RecursiveCharacterTextSplitter(
             chunk_size=chroma_conf["chunk_size"],
@@ -27,15 +26,15 @@ class VectorStoreService:
 
     def get_retriever(self):  # 获取向量检索器
         return self.vector_store.as_retriever(
-            search_kwargs={"k": chroma_conf["k"]},
+            search_kwargs={
+                "k": chroma_conf["k"],
+            },
         )
 
     def load_documents(self):
         """
         从数据文件夹内读取数据文件，转为向量存入向量库
         要计算文件的 md5 做去重
-        :param self:
-        :return:
         """
 
         def check_md5_hex(md5_for_check: str):
@@ -72,6 +71,10 @@ class VectorStoreService:
                 return txt_loader(read_path)
             if read_path.endswith(".pdf"):
                 return pdf_loader(read_path)
+            if read_path.endswith(".docx"):
+                return docx_loader(read_path)
+            if read_path.endswith(".md"):
+                return md_loader(read_path)
 
             return []
 

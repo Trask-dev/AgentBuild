@@ -1,8 +1,33 @@
 fastapi==0.104.1
 uvicorn==0.24.0
 pydantic==2.4.2
+pydantic-settings==2.0.3
 sqlalchemy==2.0.23
-langchain==0.1.0
-langchain-openai==0.0.2
-chromadb==0.4.18
+pymysql==1.1.0
 python-dotenv==1.0.0
+
+# LangChain
+langchain==0.3.0
+langchain-core==0.3.0
+langchain-openai==0.2.0
+langchain-community==0.3.0
+langchain-chroma==0.1.0
+langchain-text-splitters==0.3.0
+langgraph==0.2.0
+
+# Vector DB
+chromadb==0.5.0
+
+# Embedding
+dashscope>=1.17.0
+
+# Tools
+ddgs>=9.0.0
+requests>=2.31.0
+
+# File processing
+python-docx>=1.0.0
+unstructured>=0.12.0
+
+# Config
+pyyaml>=6.0

@@ -124,7 +124,12 @@ async function onSend(text) {
       })
       sid = r.data.id
       store.setCurrentSession(r.data)
-      router.replace(`/chat/${pickedAgentId.value}/${sid}`)
+      // 立即插入侧边栏会话列表（不等 AI 回复完）
+      if (!store.sessions.find(s => s.id === r.data.id)) {
+        store.sessions.unshift(r.data)
+      }
+      // 静默更新 URL，不触发 watcher 避免中断流式输出
+      window.history.replaceState(null, '', `/chat/${pickedAgentId.value}/${sid}`)
     } catch { return ElMessage.error('创建会话失败') }
   }
 
@@ -137,6 +142,19 @@ async function onSend(text) {
 
   try {
     const resp = await chatStream(sid, 1, text)
+
+    // 检查 HTTP 状态
+    if (!resp.ok) {
+      const errText = await resp.text()
+      try {
+        const errJson = JSON.parse(errText)
+        throw new Error(errJson.detail || errText)
+      } catch (e) {
+        if (e.message !== errText) throw e
+        throw new Error(errText || `HTTP ${resp.status}`)
+      }
+    }
+
     const reader = resp.body.getReader()
     const dec = new TextDecoder()
     let buf = ''
@@ -158,16 +176,19 @@ async function onSend(text) {
             streamText.value = raw
           }
         } else {
-          streamText.value = line
+          // 跳过空内容（工具调用阶段中间态可能无文本）
+          if (line.trim()) streamText.value = line
         }
       }
     }
-  } catch {
-    streamText.value += '\n[请求失败]'
+  } catch (e) {
+    streamText.value = '[请求失败] ' + (e.message || '未知错误')
   }
 
-  if (streamText.value.trim()) {
-    msgs.value.push({ role: 'assistant', content: streamText.value.trim() })
+  // 流式结束后保存 AI 消息
+  const finalText = streamText.value.trim()
+  if (finalText) {
+    msgs.value.push({ role: 'assistant', content: finalText })
   }
   streamText.value = ''
   streaming.value = false
@@ -179,11 +200,20 @@ async function scrollBottom() {
   if (msgArea.value) msgArea.value.scrollTop = msgArea.value.scrollHeight
 }
 
-// 路由变化
-watch(() => route.params.sessionId, async (val) => {
-  if (val && route.params.agentId) {
-    pickedAgentId.value = Number(route.params.agentId)
-    await loadHistory(Number(val))
+// 路由变化：有会话→加载历史，无会话→清空
+watch(() => route.path, async (path) => {
+  const { agentId, sessionId } = route.params
+  if (agentId && sessionId) {
+    pickedAgentId.value = Number(agentId)
+    const agent = store.agents.find(a => a.id === pickedAgentId.value)
+    if (agent) store.setCurrentAgent(agent)
+    store.setCurrentSession({ id: Number(sessionId), agent_id: Number(agentId) })
+    await loadHistory(Number(sessionId))
+  } else if (path === '/chat') {
+    // 新对话：清空
+    msgs.value = []
+    pickedAgentId.value = null
+    store.clearChat()
   }
 })
 </script>

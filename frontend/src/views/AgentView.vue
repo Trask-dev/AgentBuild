@@ -60,6 +60,15 @@
             <el-option v-for="r in ragOptions" :key="r.id" :label="r.name" :value="r.id" />
           </el-select>
         </el-form-item>
+        <el-form-item label="启用工具">
+          <el-checkbox-group v-model="form.tools">
+            <el-checkbox label="get_current_time">当前时间</el-checkbox>
+            <el-checkbox label="calculator">计算器</el-checkbox>
+            <el-checkbox label="web_search">联网搜索</el-checkbox>
+            <el-checkbox label="get_weather">天气查询</el-checkbox>
+          </el-checkbox-group>
+          <p style="font-size:12px;color:var(--text-tertiary);margin-top:4px;">RAG 知识库检索在绑定知识库后自动启用</p>
+        </el-form-item>
       </el-form>
       <template #footer>
         <el-button @click="dialogVisible=false">取消</el-button>
@@ -90,7 +99,8 @@ const formRef = ref(null)
 
 const form = reactive({
   name: '', description: '', system_prompt: '',
-  model_name: '', api_key: '', base_url: '', kb_id: null
+  model_name: '', api_key: '', base_url: '', kb_id: null,
+  tools: []
 })
 
 const rules = {
@@ -116,6 +126,7 @@ onMounted(async () => {
 function resetForm() {
   form.name = ''; form.description = ''; form.system_prompt = ''
   form.model_name = ''; form.api_key = ''; form.base_url = ''; form.kb_id = null
+  form.tools = []
 }
 
 function openCreate() { editingId.value = null; resetForm(); dialogVisible.value = true }
@@ -128,6 +139,7 @@ async function openEdit(a) {
     form.name = d.name; form.description = d.description || ''
     form.system_prompt = d.system_prompt; form.model_name = d.model_name
     form.api_key = d.api_key; form.base_url = d.base_url; form.kb_id = d.kb_id
+    form.tools = d.tools || []
     dialogVisible.value = true
   } catch (e) {
     console.error('获取智能体详情失败', e)
@@ -145,7 +157,7 @@ async function submit() {
   if (!ok) return
   submitting.value = true
   try {
-    const data = { ...form, tools: [] }
+    const data = { ...form }
     // 编辑时 api_key 含 **** 说明是脱敏值未修改，后端应保留原值
     if (editingId.value) {
       await updateAgent(editingId.value, data)

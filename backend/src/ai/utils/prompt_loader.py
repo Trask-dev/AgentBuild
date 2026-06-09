@@ -4,7 +4,7 @@ from ai.utils.path_tool import get_abs_path
 
 def load_rag_prompt():
     try:
-        rag_prompt_path = get_abs_path(prompts_conf["rag_summarize_prompt_path"])
+        rag_prompt_path = get_abs_path(prompts_conf["rag_prompt_path"])
     except KeyError as e:
         logger.error(f"agent:[load_rag_prompt]在yaml配置项中没有rag_summarize_prompt_path配置项")
         raise e
