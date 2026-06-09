@@ -50,9 +50,9 @@ Thumbs.db
 
 # AI/RAG data
 backend/src/ai/rag/data/
-backend/src/ai/rag/files/
-backend/src/ai/rag/md5_hex_store/
-backend/src/ai/rag/chroma_db/
+backend/src/ai/rag/data/files/
+backend/src/ai/rag/data/md5_hex_store/
+backend/src/ai/rag/data/chroma_db/
 
 # 前端依赖
 node_modules/

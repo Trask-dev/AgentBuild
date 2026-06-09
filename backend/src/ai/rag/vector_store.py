@@ -39,32 +39,44 @@ class VectorStoreService:
         """
 
         def check_md5_hex(md5_for_check: str):
-            if not os.path.exists(f"{get_abs_path(chroma_conf['md5_hex_store'])}/kb_{self.kb_id}"):  # 如果记录MD5的文件不存在
-                open(f"{get_abs_path(chroma_conf['md5_hex_store'])}/kb_{self.kb_id}", "w", encoding="utf-8").close()
-                return False    # md5 没处理过
+            md5_file_path = os.path.join(get_abs_path(chroma_conf['md5_hex_store']), f"kb_{self.kb_id}")
+            md5_dir = os.path.dirname(md5_file_path)
 
-            with open(f"{get_abs_path(chroma_conf['md5_hex_store'])}/kb_{self.kb_id}", "r", encoding="utf-8") as f:
+            if not os.path.exists(md5_dir):
+                os.makedirs(md5_dir, exist_ok=True)
+
+            if not os.path.exists(md5_file_path):
+                open(md5_file_path, "w", encoding="utf-8").close()
+                return False
+
+            with open(md5_file_path, "r", encoding="utf-8") as f:
                 for line in f.readlines():
                     line = line.strip()
                     if line == md5_for_check:
-                        return True # md5 处理过
+                        return True
 
-                return False    # md5 没处理过
+                return False
 
         def save_md5_hex(md5_for_check: str):
-            with open(f"{get_abs_path(chroma_conf['md5_hex_store'])}/kb_{self.kb_id}", "a", encoding="utf-8") as f:
+            md5_file_path = os.path.join(get_abs_path(chroma_conf['md5_hex_store']), f"kb_{self.kb_id}")
+            md5_dir = os.path.dirname(md5_file_path)
+
+            if not os.path.exists(md5_dir):
+                os.makedirs(md5_dir, exist_ok=True)
+
+            with open(md5_file_path, "a", encoding="utf-8") as f:
                 f.write(md5_for_check + "\n")
 
         def get_file_documents(read_path: str):
-            if read_path.endswith("txt"):
+            if read_path.endswith(".txt"):
                 return txt_loader(read_path)
-            if read_path.endswith("pdf"):
+            if read_path.endswith(".pdf"):
                 return pdf_loader(read_path)
 
             return []
 
         allowed_file_path: list[str] = listdir_with_allowed_type(
-            f"{get_abs_path(chroma_conf['data_path'])}/kb_{self.kb_id}",
+            os.path.join(get_abs_path(chroma_conf['data_path']), f"kb_{self.kb_id}"),
             tuple(chroma_conf["allow_knowledge_file_type"])
         )
 
