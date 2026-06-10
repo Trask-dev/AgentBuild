@@ -140,6 +140,7 @@ async function onSend(text) {
   streaming.value = true
   streamText.value = ''
 
+// ... existing code ...
   try {
     const resp = await chatStream(sid, 1, text)
 
@@ -165,35 +166,55 @@ async function onSend(text) {
       buf += dec.decode(value, { stream: true })
       const lines = buf.split('\n')
       buf = lines.pop() || ''
+
       for (const line of lines) {
         if (!line.trim()) continue
+
+        // 尝试解析 SSE 格式
         if (line.startsWith('data: ')) {
           const raw = line.slice(6)
           try {
             const json = JSON.parse(raw)
-            if (json.error) streamText.value = '[错误] ' + json.error
+            if (json.error) {
+              streamText.value = '[错误] ' + json.error
+            } else if (json.content) {
+              streamText.value += json.content
+            }
           } catch {
-            streamText.value = raw
+            // 如果解析失败，直接拼接原始内容
+            streamText.value += raw
           }
         } else {
-          // 跳过空内容（工具调用阶段中间态可能无文本）
-          if (line.trim()) streamText.value = line
+          // 非 data: 开头的行，直接拼接（兼容后端未使用 SSE 格式）
+          streamText.value += line
         }
       }
+
+      // 实时滚动到底部
+      await scrollBottom()
     }
-  } catch (e) {
+   } catch (e) {
     streamText.value = '[请求失败] ' + (e.message || '未知错误')
   }
 
   // 流式结束后保存 AI 消息
   const finalText = streamText.value.trim()
-  if (finalText) {
-    msgs.value.push({ role: 'assistant', content: finalText })
+
+  // 只要有有效内容就添加到消息列表
+  if (finalText && !finalText.startsWith('[请求失败]') && !finalText.startsWith('[错误]')) {
+    msgs.value.push({ role: 'assistant', content: streamText.value })
+  } else if (streamText.value && !streamText.value.startsWith('[请求失败]')) {
+    // 即使 trim 后为空，只要不是错误信息也添加（可能是纯换行等）
+    msgs.value.push({ role: 'assistant', content: streamText.value })
   }
+
   streamText.value = ''
   streaming.value = false
   await scrollBottom()
 }
+
+// ... existing code ...
+
 
 async function scrollBottom() {
   await nextTick()

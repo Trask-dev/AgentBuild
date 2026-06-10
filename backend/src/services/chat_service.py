@@ -19,7 +19,7 @@ class ChatService:
         ).first()
 
         if not session:
-            yield json.dumps({"error": "会话不存在"}, ensure_ascii=False)
+            yield f"data: {json.dumps({'error': '会话不存在'}, ensure_ascii=False)}\n\n"
             return
 
         # 2. 从会话中获取 agent_id
@@ -32,7 +32,7 @@ class ChatService:
         ).first()
 
         if not agent:
-            yield json.dumps({"error": "智能体不存在"}, ensure_ascii=False)
+            yield f"data: {json.dumps({'error': '智能体不存在'}, ensure_ascii=False)}\n\n"
             return
 
         try:
@@ -53,21 +53,29 @@ class ChatService:
                 session_id = session_id
             )
 
-            # 流式返回
+            # 流式返回 - 使用标准 SSE 格式
             full_answer = ""
             for chunk in react_agent.execute_stream(query, chat_history):
                 full_answer += chunk
-                yield chunk
+                # SSE 格式：data: <content>\n\n
+                yield f"data: {json.dumps({'content': chunk}, ensure_ascii=False)}\n\n"
 
-            # 保存历史记录
-            ChatHistoryService.add_chat(
-                db=db,
-                user_id=user_id,
-                agent_id=agent_id,
-                session_id=session_id,
-                user_msg=query,
-                ai_msg=full_answer.strip()
-            )
+            # 保存历史记录 - 添加完善的异常处理
+            try:
+                ChatHistoryService.add_chat(
+                    db=db,
+                    user_id=user_id,
+                    agent_id=agent_id,
+                    session_id=session_id,
+                    user_msg=query,
+                    ai_msg=full_answer.strip()
+                )
+            except Exception as save_error:
+                # 记录保存失败的日志，但不影响用户看到回复
+                from ai.utils.logger_handler import logger
+                logger.error(f"[对话保存失败] session_id={session_id}, error={str(save_error)}")
+                # 不抛出异常，因为用户已经看到了回复内容
 
         except Exception as e:
-            yield json.dumps({"error": f"Agent执行异常：{str(e)}"}, ensure_ascii=False)
+            yield f"data: {json.dumps({'error': f'Agent执行异常：{str(e)}'}, ensure_ascii=False)}\n\n"
+
