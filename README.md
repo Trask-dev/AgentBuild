@@ -4,11 +4,12 @@
 
 ## 功能
 
-- **智能体管理** — 创建/编辑/删除自定义 AI Agent，配置系统提示词、大模型、API Key、知识库
+- **智能体管理** — 创建/编辑/删除自定义 AI Agent，配置系统提示词、大模型、API Key、工具绑定、知识库
 - **流式对话** — SSE 实时打字机效果，支持多轮对话，自动保存历史
 - **RAG 知识库** — 上传 TXT/PDF 文档，自动分块→向量化→语义检索，为 Agent 注入领域知识
 - **会话管理** — 多会话切换，历史记录查阅，按智能体筛选
 - **模型灵活接入** — 支持 OpenAI 兼容 API（通义千问、DeepSeek、GPT 等任意模型）
+- **多工具调用** — 内置计算器、网络搜索、天气查询、RAG 知识检索等工具，Agent 可动态选择调用
 
 ## 技术栈
 
@@ -26,12 +27,18 @@
 智能体搭建平台/
 ├── backend/
 │   ├── src/
-│   │   ├── ai/            # AI 核心（Agent、RAG、模型工厂）
-│   │   ├── api/           # FastAPI 路由
+│   │   ├── ai/
+│   │   │   ├── agent/         # ReAct Agent + 工具集
+│   │   │   ├── model/         # LLM 模型工厂
+│   │   │   ├── rag/           # RAG 检索 + 向量存储
+│   │   │   ├── config/        # YAML 配置（Agent、Chroma、RAG、Prompts）
+│   │   │   ├── prompts/       # Prompt 模板
+│   │   │   └── utils/         # 日志、文件处理、配置加载等工具
+│   │   ├── api/           # FastAPI 路由（agent、chat、session、rag、tool）
 │   │   ├── core/          # 数据库 & 配置
-│   │   ├── models/        # SQLAlchemy ORM
+│   │   ├── models/        # SQLAlchemy ORM（agent、session、chat_history、rag、tool）
 │   │   ├── schemas/       # Pydantic 请求/响应
-│   │   ├── services/      # 业务逻辑
+│   │   ├── services/      # 业务逻辑（agent、chat、session、rag、tool）
 │   │   └── main.py        # 应用入口
 │   ├── requirements.txt
 │   └── .env
@@ -89,6 +96,7 @@ npm run dev
 | POST | `/rag` | 创建知识库 |
 | GET | `/rag` | 获取所有知识库 |
 | POST | `/rag/{id}/upload` | 上传文件到知识库 |
+| GET | `/tools` | 获取所有可用工具 |
 | POST | `/session` | 创建会话 |
 | GET | `/session` | 获取会话列表 |
 | POST | `/chat/{id}` | 流式对话（SSE） |
@@ -100,7 +108,7 @@ npm run dev
 用户 → Vue 3 前端 → Vite Proxy → FastAPI 后端
                                        ├── LangChain ReAct Agent
                                        │     ├── LLM（通义千问）
-                                       │     └── Tools（RAG 检索）
+                                       │     └── Tools（计算器·网络搜索·天气查询·RAG检索）
                                        ├── ChromaDB（向量检索）
-                                       └── MySQL（业务数据）
+                                       └── MySQL（业务数据 + 工具注册表）
 ```
